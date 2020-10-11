@@ -11,13 +11,14 @@ Delimiter=['(', ')', ',', ';', '.']
 #词法分析器中的保留字
 KeyWord=['const', 'var', 'procedure', 'begin', 'end', 'odd', 'if', 'then', 'call', 'while', 'do', 'read', 'write']
 #类别词典
-sym = {
-    'wordsym':['const保留字', 'var保留字', 'procedure保留字', 'begin保留字', 'end保留字', 'odd保留字', 'if保留字', 'then保留字', 'call保留字', 'while保留字', 'do保留字', 'read保留字', 'write保留字'],
-    'numsym':'无符号整数',
-    'opsym':['加号', '减号', '乘号', '除号', '赋值号', '不等号', '小于号', '小于等于号', '大于号', '大于等于号' ,'赋值号'],
-    'delisym':['左括号','右括号','逗号','分号','句点'],
-    'identsym':'标识符'
-    }
+sym={
+    0:'nul',
+    1:['constsym', 'varsym', 'procsym', 'beginsym', 'endsym', 'oddsym', 'ifsym', 'thensym', 'callsym', 'whilesym', 'dosym', 'readsym', 'writesym'],
+    2:'ident',
+    3:'number',
+    4:['plus', 'minus', 'times', 'slash', 'becomes', 'neq', 'lss', 'leq', 'gtr', 'geq' ,'becomes'],
+    5:['lparen','rparen','comma','semicolon','period']
+}
 #多行左注释标志
 LeftNoteFlag=0 
 #多行右注释标志
@@ -200,6 +201,8 @@ class LexicalAnalyzer():
                         #将单词加进结果列表，清空 
                         ResultList.append(Letter) 
                         Letter=''
+                    else:
+                        raise Exception("无法识别该符号")
                     if Char==String[-1]:
                         #以字母结尾，将单词加进结果列表，清空
                         ResultList.append(Letter) 
@@ -210,12 +213,17 @@ class LexicalAnalyzer():
                         #char的下一位是数字
                         if self.IsDigit(String[index]): 
                             Digit+=Char
+                        #char的下一位是字母
+                        elif self.IsLetter(String[index]):
+                            raise Exception("非法标识符：标识符只能以字母开头")
                         #char的下一位是空白、分界符或运算符
                         elif (self.IsSpace(String[index]) or (String[index] in Delimiter) or (String[index] in Operation) or (String[index:index+2] in Operation)): 
                             Digit+=Char
                             #将数字加进结果列表，清空
                             ResultList.append(Digit)
                             Digit=''
+                        else:
+                            raise Exception("无法识别该符号")
                         if Char==String[-1]:
                             #以数字结尾，将数字加进结果列表，清空
                             ResultList.append(Letter) 
@@ -240,6 +248,8 @@ class LexicalAnalyzer():
                                 #char是空白
                                 if(self.IsSpace(Char)):
                                     pass
+                                else:
+                                    raise Exception("无法识别该符号")
         return ResultList
          
     def JudgeAndOutput(self,List): 
@@ -253,33 +263,33 @@ class LexicalAnalyzer():
             if(len(String)==1):
                 #分界符
                 if(String in Delimiter):
-                    print('<'+String+','+sym['delisym'][Delimiter.index(String)]+'>')
+                    print('<'+sym[5][Delimiter.index(String)]+','+String+'>')
                 #运算符
                 elif(String in Operation):
-                    print('<'+String+','+sym['opsym'][Operation.index(String)]+'>')
+                    print('<'+sym[4][Operation.index(String)]+','+String+'>')
                 else:
                     #数字
                     if(String.isdigit()): 
-                        print('<'+String+','+sym['numsym']+'>')
+                        print('<'+sym[3]+','+String+'>')
                     #str.isalnum() 如果string至少有一个字符并且所有字符都是字母或数字则返回 True,否则返回 False
                     #标识符
                     elif(String.isalnum()): 
-                        print('<'+String+','+sym['identsym']+'>')
+                        print('<'+sym[2]+','+String+'>')
             #该单词由多个字符构成
             else:
                 #保留字
                 if(String in KeyWord): 
-                    print('<'+String+','+sym['wordsym'][KeyWord.index(String)]+'>')
+                    print('<'+sym[1][KeyWord.index(String)]+','+String+'>')
                 #运算符
                 elif(String in Operation): 
-                    print('<'+String+','+sym['opsym'][Operation.index(String)]+'>')
+                    print('<'+sym[4][Operation.index(String)]+','+String+'>')
                 else:
                     #数字
                     if(String.isdigit()): 
-                        print('<'+String+','+sym['numsym']+'>')
+                        print('<'+sym[3]+','+String+'>')
                     #标识符
                     elif(String.isalnum()): 
-                        print('<'+String+','+sym['identsym']+'>')
+                        print('<'+sym[2]+','+String+'>')
 
 
 def main():
